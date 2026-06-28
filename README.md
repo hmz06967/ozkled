@@ -1,6 +1,4 @@
-# ozkled
-
-# Neopixel LED Kontrolü - ESP32 Bluetooth ile
+# Ozkled Neopixel LED Kontrolü - ESP32 Bluetooth ile
 
 **Proje Özeti:** Bu proje, ESP32 mikrodenetleyici kullanarak Ws2812 Neopixel LED'lerinin parlaklığını ve renklerini Bluetooth üzerinden kontrol etmenizi sağlar. Özel bir protokol kullanılarak haberleşme sağlanır.
 
