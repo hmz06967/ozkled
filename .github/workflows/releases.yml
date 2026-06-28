@@ -30,11 +30,15 @@ jobs:
           
       - name: Create release
         uses: actions/checkout@v4
+
+      - name: Generate Release Notes and Publish
+        id: generate_release_notes
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: 'release-drafter.yml'
+          name: "Release ${{ github.ref_name }}"
+          tag: ${{ github.ref_name }}
+          publish: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.extract_version.outputs.version }}
-          release_name: Release ${{ steps.extract_version.outputs.version }}
-          body: |
-            Release ${{ steps.extract_version.outputs.version }}
-            ${{ steps.extract_body.outputs.body }}
