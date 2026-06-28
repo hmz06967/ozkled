@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Extract version from changelog
+        id: extract_version
+        run: |
+          VERSION=$(grep -E -m1 "^## v" CHANGELOG.md | cut -d ' ' -f 2)
+          echo "::set-output name=version::${VERSION}"
+      
+      - name: Update version in library.properties
+        run: sed -i "s/^version=.*$/version=${{ steps.extract_version.outputs.version }}/g" library.properties
+
+      - name: Extract release body
+        id: extract_body
+        run: |
+          BODY=$(awk '/^### Changed$/{flag=1; next} /^##/{flag=0} flag' CHANGELOG.md)
+          echo "::set-output name=body::${BODY}"
+          
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.extract_version.outputs.version }}
+          release_name: Release ${{ steps.extract_version.outputs.version }}
+          body: |
+            Release ${{ steps.extract_version.outputs.version }}
+            ${{ steps.extract_body.outputs.body }}
