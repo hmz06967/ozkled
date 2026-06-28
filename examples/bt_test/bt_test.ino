@@ -12,13 +12,5 @@ void setup() {
 }
 
 void loop() {
-  // Example: Turn on red pixel at index 0
-  ozkled.setPixel(0, 255, 0, 0);
-  
   delay(1000);
-
-  // Send buffer (blinks red)
-  if (ozkled.sendBuffer()) {
-    Serial.println("LED buffer sent!");
-  }
 }
