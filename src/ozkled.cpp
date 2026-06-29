@@ -7,6 +7,70 @@ Ozkled ozkled;
 #define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 #define CHARACTERISTIC_UUID_TX "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
+
+class CONNCallbacks : public BLEServerCallbacks {
+  bool deviceConnected = false;
+  
+  void onConnect(BLEServer *pServer) {
+    deviceConnected = true;
+    Serial.println("Device connected");
+  };
+
+  void onDisconnect(BLEServer *pServer) {
+    deviceConnected = false;
+    Serial.println("Device disconnected");
+  }
+};
+
+class RXCallbacks : public BLECharacteristicCallbacks {
+  
+
+  bool debug = false;
+  
+  void (*currentParseCallback)(String) = nullptr;
+
+  void setParseCommandCallback(void (*callback)(String)) {
+      currentParseCallback = callback;
+  }
+
+  void setDebug(bool dbgmode){
+    debug = dbgmode;
+  }
+
+  void printUart(String rxValue){
+    
+    if (!debug)return;
+
+    if (rxValue.length() > 0) {
+      Serial.println("*********");
+      Serial.print("Received Value: ");
+      for (int i = 0; i < rxValue.length(); i++) {
+        char c = rxValue[i];
+        Serial.print(c);
+      }
+      Serial.println();
+      Serial.println("*********");
+    }
+    Serial.flush();
+  }
+
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    String rxValue = pCharacteristic->getValue();
+
+    if (currentParseCallback != nullptr) {
+        currentParseCallback(rxValue);
+        printUart(rxValue);
+    } else {
+        // Varsayılan işlem: boş komutu logla ya da ignore et
+        Serial.println("No parse callback set.");
+    }
+    
+    /**/
+
+  }
+};
+
+
 void Ozkled::init(int led_size, int led_pin){
   
   _led_count = led_size;
@@ -16,16 +80,20 @@ void Ozkled::init(int led_size, int led_pin){
 
   pServer = pdevice.createServer();
   pService = pServer->createService(SERVICE_UUID);
-  pChar = pService->createCharacteristic(
-    CHARACTERISTIC_UUID_TX,
-    BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY
-  );
-  pServer->startAdvertising();
-  neopixel = new Adafruit_NeoPixel(_led_count, _led_pin, NEO_GRB + NEO_KHZ800);
+  pServer->setCallbacks(new CONNCallbacks());
 
-  pChar->setCallbacks(this);
+  BLECharacteristic * pTxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID_TX, BLECharacteristic::PROPERTY_NOTIFY);
+  pTxCharacteristic->addDescriptor(new BLE2902());
+  BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID_RX, BLECharacteristic::PROPERTY_WRITE);
+  pRxCharacteristic->setCallbacks(this);
+
   pService->start();
   pServer->getAdvertising()->start();
+  
+  neopixel = new Adafruit_NeoPixel(_led_count, _led_pin, NEO_GRB + NEO_KHZ800);
+
+  Serial.println("Waiting a client connection to notify...");
+
 }
 
 void Ozkled::setNeoPixel(Adafruit_NeoPixel *_neopixel) {
