@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Ozkled.h>
+#include <ozkled.h>
 
 #define LED_PIN     13
 #define LED_COUNT   200   // şerit LED sayısı
