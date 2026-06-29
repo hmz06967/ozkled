@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 ## v1.0.3
 ### Changed
 
-## v1.0
+## v1.0.2
+### Changed
+
+## v1.0.1
+### Changed
+
+## v1.0.0
 ### Changed
  - Added bt_test example files
