@@ -24,9 +24,23 @@ uint8_t txValue = 0;
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+int R = 0;
+int G = 0;
+int B = 0;
+int I = 0;
+int L = 0;
+int NL = LED_COUNT;
+float gamma_table[4];
+
+int gamma_value = 0;
+int brightness_value = 0;
+
 void clearPixel();
 void setPixelColorSafe(int index, uint8_t r, uint8_t g, uint8_t b);
 void applyColor(uint8_t r, uint8_t g, uint8_t b, int index);
+void applyRGB(uint8_t *r, uint8_t *g, uint8_t *b);
+uint8_t applyGammaBrightness(uint8_t value);
+
 void parseCommand(String cmd);
 void setup();
 void loop();
@@ -44,8 +58,23 @@ void setPixelColorSafe(int index, uint8_t r, uint8_t g, uint8_t b) {
   }
 }
 
-void applyColor(uint8_t r, uint8_t g, uint8_t b, int index) {
+uint8_t applyGammaBrightness(uint8_t value){
+    uint16_t v = (uint16_t)value * brightness_value / 100;
+    float normalized = (float)v / 255.0f;
+    float corrected = powf(normalized, gamma);
+    return (uint8_t)(corrected * 255.0f + 0.5f);
+}
 
+void applyRGB(){
+    *r = applyGammaBrightness(r);
+    *g = applyGammaBrightness(g);
+    *b = applyGammaBrightness(b);
+}
+
+void applyColor(uint8_t r, uint8_t g, uint8_t b, int index) {
+  
+  applyRGB(&r, &g, &b);
+    
   if (index == -1) {
     for (int i = 0; i < LED_COUNT; i++) {
       strip.setPixelColor(i, strip.Color(r, g, b));
@@ -57,6 +86,69 @@ void applyColor(uint8_t r, uint8_t g, uint8_t b, int index) {
   }
 
   strip.show();
+}
+
+void parseCommand2(char *cmd){
+
+    if (strchr(cmd, ',') != NULL){
+        char *token = strtok(cmd, ",");
+
+        while (token != NULL){
+            
+            char type = token[0];
+            int value = atoi(&token[1]);
+
+            switch (type){
+                case 'R':
+                    R = value;
+                    break;
+
+                case 'G':
+                    G = value;
+                    break;
+
+                case 'B':
+                    B = value;
+                    break;
+
+                case 'I':
+                    I = value;
+                    break;
+
+                case 'L':
+                    L = value;
+                    break;
+            }
+
+            token = strtok(NULL, ",");
+        }
+    }else{
+        // Tek komut
+        char type = cmd[0];
+        int value = atoi(&cmd[1]);
+
+        switch (type)
+        {
+            case 'G':
+                gamma_value = value;
+                break;
+
+            case 'B':
+                brightness_value = value;
+                break;
+        }
+    }
+
+  if (L >= 0) {
+    clearPixel();
+    NL = L;
+    if (NL > 0 && NL <= 300) {
+      strip.updateLength(NL);
+    }
+  }
+    
+  applyColor(R, G, B, I);
+  
 }
 
 // R0,G0,B255,I-1,L20
@@ -114,7 +206,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
 class MyCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
     String rxValue = pCharacteristic->getValue();
-    parseCommand(rxValue);
+    parseCommand2(rxValue);
     
     /*if (rxValue.length() > 0) {
       Serial.println("*********");
