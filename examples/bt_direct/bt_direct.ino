@@ -61,14 +61,14 @@ void setPixelColorSafe(int index, uint8_t r, uint8_t g, uint8_t b) {
 uint8_t applyGammaBrightness(uint8_t value){
     uint16_t v = (uint16_t)value * brightness_value / 100;
     float normalized = (float)v / 255.0f;
-    float corrected = powf(normalized, gamma);
+    float corrected = powf(normalized, v);
     return (uint8_t)(corrected * 255.0f + 0.5f);
 }
 
-void applyRGB(){
-    *r = applyGammaBrightness(r);
-    *g = applyGammaBrightness(g);
-    *b = applyGammaBrightness(b);
+void applyRGB(uint8_t *r, uint8_t *g, uint8_t *b){
+    *r = applyGammaBrightness(*r);
+    *g = applyGammaBrightness(*g);
+    *b = applyGammaBrightness(*b);
 }
 
 void applyColor(uint8_t r, uint8_t g, uint8_t b, int index) {
@@ -87,18 +87,34 @@ void applyColor(uint8_t r, uint8_t g, uint8_t b, int index) {
 
   strip.show();
 }
+void parseCommand2(String cmd)
+{
+    if (cmd.indexOf(',') != -1)
+    {
+        while (cmd.length() > 0)
+        {
+            int comma = cmd.indexOf(',');
+            String token;
 
-void parseCommand2(char *cmd){
+            if (comma == -1)
+            {
+                token = cmd;
+                cmd = "";
+            }
+            else
+            {
+                token = cmd.substring(0, comma);
+                cmd = cmd.substring(comma + 1);
+            }
 
-    if (strchr(cmd, ',') != NULL){
-        char *token = strtok(cmd, ",");
+            if (token.length() < 2)
+                continue;
 
-        while (token != NULL){
-            
-            char type = token[0];
-            int value = atoi(&token[1]);
+            char type = token.charAt(0);
+            int value = token.substring(1).toInt();
 
-            switch (type){
+            switch (type)
+            {
                 case 'R':
                     R = value;
                     break;
@@ -119,13 +135,15 @@ void parseCommand2(char *cmd){
                     L = value;
                     break;
             }
-
-            token = strtok(NULL, ",");
         }
-    }else{
-        // Tek komut
-        char type = cmd[0];
-        int value = atoi(&cmd[1]);
+    }
+    else
+    {
+        if (cmd.length() < 2)
+            return;
+
+        char type = cmd.charAt(0);
+        int value = cmd.substring(1).toInt();
 
         switch (type)
         {
@@ -139,18 +157,25 @@ void parseCommand2(char *cmd){
         }
     }
 
-  if (L >= 0) {
-    clearPixel();
-    NL = L;
-    if (NL > 0 && NL <= 300) {
-      strip.updateLength(NL);
-    }
-  }
-    
-  applyColor(R, G, B, I);
-  
-}
+    // LED sayısı değiştiyse
+    if (L >= 0 && L <= 300)
+    {
+        if (L != NL)
+        {
+            clearPixel();
 
+            NL = L;
+
+            if (NL > 0)
+            {
+                strip.updateLength(NL);
+            }
+        }
+    }
+
+    // RGB uygula
+    applyColor(R, G, B, I);
+}
 // R0,G0,B255,I-1,L20
 void parseCommand(String cmd) {
   cmd.trim();
