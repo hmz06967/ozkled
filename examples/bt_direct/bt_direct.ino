@@ -59,9 +59,8 @@ void setPixelColorSafe(int index, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 uint8_t applyGammaBrightness(uint8_t value){
-    uint16_t v = (uint16_t)value * brightness_value / 100;
-    float normalized = (float)v / 255.0f;
-    float corrected = powf(normalized, v);
+    float normalized = (float)value / 255.0f;
+    float corrected = powf(normalized, gamma_value);
     return (uint8_t)(corrected * 255.0f + 0.5f);
 }
 
@@ -87,57 +86,12 @@ void applyColor(uint8_t r, uint8_t g, uint8_t b, int index) {
 
   strip.show();
 }
+
 void parseCommand2(String cmd)
 {
-    if (cmd.indexOf(',') != -1)
-    {
-        while (cmd.length() > 0)
-        {
-            int comma = cmd.indexOf(',');
-            String token;
-
-            if (comma == -1)
-            {
-                token = cmd;
-                cmd = "";
-            }
-            else
-            {
-                token = cmd.substring(0, comma);
-                cmd = cmd.substring(comma + 1);
-            }
-
-            if (token.length() < 2)
-                continue;
-
-            char type = token.charAt(0);
-            int value = token.substring(1).toInt();
-
-            switch (type)
-            {
-                case 'R':
-                    R = value;
-                    break;
-
-                case 'G':
-                    G = value;
-                    break;
-
-                case 'B':
-                    B = value;
-                    break;
-
-                case 'I':
-                    I = value;
-                    break;
-
-                case 'L':
-                    L = value;
-                    break;
-            }
-        }
-    }
-    else
+    if (cmd.indexOf(',') != -1) {
+        parseCommand(cmd);
+    } else
     {
         if (cmd.length() < 2)
             return;
@@ -153,29 +107,12 @@ void parseCommand2(String cmd)
 
             case 'B':
                 brightness_value = value;
+                strip.setBrightness(value);
                 break;
         }
     }
-
-    // LED sayısı değiştiyse
-    if (L >= 0 && L <= 300)
-    {
-        if (L != NL)
-        {
-            clearPixel();
-
-            NL = L;
-
-            if (NL > 0)
-            {
-                strip.updateLength(NL);
-            }
-        }
-    }
-
-    // RGB uygula
-    applyColor(R, G, B, I);
 }
+
 // R0,G0,B255,I-1,L20
 void parseCommand(String cmd) {
   cmd.trim();
@@ -233,7 +170,7 @@ class MyCallbacks : public BLECharacteristicCallbacks {
     String rxValue = pCharacteristic->getValue();
     parseCommand2(rxValue);
     
-    /*if (rxValue.length() > 0) {
+    if (rxValue.length() > 0) {
       Serial.println("*********");
       Serial.print("Received Value: ");
       for (int i = 0; i < rxValue.length(); i++) {
@@ -244,7 +181,7 @@ class MyCallbacks : public BLECharacteristicCallbacks {
       Serial.println("*********");
     }
 
-    Serial.flush();*/
+    Serial.flush();
 
   }
 };
@@ -271,7 +208,8 @@ void setup() {
   // Descriptor 2902 is not required when using NimBLE as it is automatically added based on the characteristic properties
   pTxCharacteristic->addDescriptor(new BLE2902());
 
-  BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID_RX, BLECharacteristic::PROPERTY_WRITE);
+  BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID_RX, BLECharacteristic::PROPERTY_WRITE |
+    BLECharacteristic::PROPERTY_WRITE_NR);
 
   pRxCharacteristic->setCallbacks(new MyCallbacks());
 
