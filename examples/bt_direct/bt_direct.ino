@@ -32,7 +32,7 @@ int L = 0;
 int NL = LED_COUNT;
 float gamma_table[4];
 
-int gamma_value = 0;
+int gamma_value = 1;
 int brightness_value = 0;
 
 void clearPixel();
@@ -108,6 +108,7 @@ void parseCommand2(String cmd)
             case 'B':
                 brightness_value = value;
                 strip.setBrightness(value);
+                strip.show();
                 break;
         }
     }
