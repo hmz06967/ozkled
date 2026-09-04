@@ -11,7 +11,7 @@
 
 **Protokol:** R255,G255,B255,I-1,L100
 
-**Kurulum Talimatları:**
+**Kurulum Adımları:**
 
 1.  ESP32'yi Arduino IDE veya benzeri bir geliştirme ortamıyla programlayın.
 2.  Ws2812 Neopixel LED'lerini ESP32'ye bağlayın.
@@ -26,10 +26,7 @@
 
 **Branch Durumu:**
 
-*   `main`: Çalışır Halde
-*   Testler Onaylandı
-
-**Çalışıyor!** (Proje başarıyla derlenmiş ve çalışmaktadır.)
+*   Test edildi
 
 **Ek Notlar:**
 
