@@ -9,7 +9,9 @@
 *   Bluetooth (ESP32'nin dahili modülü)
 *   Müşterek Protokol (Açıklama altında)
 
-**Protokol:** R255,G255,B255,I-1,L100
+**Protokol:** 
+
+* R255,G255,B255,I-1,L100
 
 **Kurulum Adımları:**
 
