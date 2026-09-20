@@ -25,6 +25,7 @@
 *   [Proje Kaynağı](https://app.hamzaozkan.com.tr/ozlight)
 *   [NeoPixel Kütüphanesi](https://github.com/adafruit/Adafruit_NeoPixel)
 *   [ESP32 Bluetooth Dokümantasyonu](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/bluetooth_wifi/index.html)
+*   [DNS Kurulum adımları için ek bilgiler](https://chatgpt.com/share/6aafed62-c8dc-83eb-a0ba-d4f4977e3e36)
 
 **Branch Durumu:**
 
